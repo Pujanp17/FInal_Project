@@ -1,7 +1,7 @@
 """ 
 COMP 593 - Final Project
 
-Description: 
+Description:
   Downloads NASA's Astronomy Picture of the Day (APOD) from a specified date
   and sets it as the desktop background image.
 
@@ -16,7 +16,7 @@ History:
   Date        Author    Description
   2022-05-09  J.Dalby   Initial creation
 """
-from os import path
+
 from sys import argv, exit
 from datetime import datetime, date
 from hashlib import  sha256
@@ -70,12 +70,13 @@ def main():
     set_desktop_background_image(image_path)
 
 def get_image_cache_path():
+
     if len(argv) >= 2:
         dir_path = argv[1]
 
         if not path.isabs(dir_path):
-            print('Error: Image cache path parameter must be absolute.')
-            exit('Script execution aborted')
+                print('Error: Image cache path parameter must be absolute.')
+                exit('Script execution aborted')
         else:
             if path.isdir(dir_path):
                 print('Image cache directory:', dir_path)
@@ -91,8 +92,7 @@ def get_image_cache_path():
                 except:
                     print('Failure')
                 return dir_path
-
-    else: 
+    else:
         print('Error: Missing Image path parameter')
         exit('Script execution aborted')
 
@@ -122,18 +122,15 @@ def get_apod_date():
 def get_apod_image_path(image_cache_path, image_title, image_url):
 
     file_ext = image_url.split(".")[-1]
-    # Remove leading and trailing spaces from the title
+
     file_name = image_title.strip()
-    # Replace inner spaces with underscores
+
     file_name = file_name.replace(' ', '_')
 
-    # Remove any non-word characters
     file_name = re.sub(r'\W', '', file_name)
 
-    # Append the extension to the file name
     file_name = '.'.join((file_name, file_ext))
 
-    # Joint the directory path and file name to get the full path
     file_path = path.join(image_cache_path, file_name)
 
     return file_path
@@ -142,13 +139,15 @@ def get_apod_info(apod_date):
 
     print("Getting image Information from NASA... Please stand by...", end= '')
 
-    NASA_API_KEY = 'tz6CvXkLfg4etTXfvIZSOFaGDi6Cmm9BT393j05V'
+    NASA_API_KEY = '1x42mQ9rSMKQPydBlZQQNGDPPoAwmqhT7M5rhcBW'
     APOD_URL = "https://api.nasa.gov/planetary/apod"
     apod_params = {
         'api_key' : NASA_API_KEY,
         'date' : apod_date,
-        'thumds' : True
+        'thumbs' : True
+
     }
+
     resp_msg = requests.get(APOD_URL, params=apod_params)
 
     if resp_msg.status_code == requests.codes.ok:
@@ -161,51 +160,35 @@ def get_apod_info(apod_date):
     return apod_info_dict
 
 def get_apod_image_url(apod_info_dict):
-    """
-    Gets the URL of the APOD image from the dictionary of APOD information.
-    If the APOD is a video, gets the URL of the video thumbnail. 
 
-    :param apod_info_dict: Dictionary of APOD info
-    :returns: APOD image URL
-    """   
-    return 'TODO'
+    if apod_info_dict['media_type'] == 'image':
+        return apod_info_dict['hdurl']
+    elif apod_info_dict['media_type']== 'video':
+        return apod_info_dict['thumbnail_url']
 
 def get_apod_image_title(apod_info_dict):
-    """
-    Gets the title of the APOD image from the dictionary of APOD information.
 
-    :param apod_info_dict: Dictionary of APOD info
-    :returns: APOD image title
-    """   
-    return 'TODO'
+    return apod_info_dict['title']
 
 def print_apod_info(image_url, image_title, image_path, image_size, image_sha256):
-    """
-    Prints the following information about the APOD:
-    - Image URL
-    - Path at which image is saved in the image cache
-    - Image size in bytes
-    - Image SHA-256 hash value 
 
-    :param image_url: URL of the APOD image
-    :param image_title: Title of the APOD image
-    :param image_path: Path of the APOD image file saved locally
-    :param image_size: Size of APOD image in bytes
-    :param image_sha256: SHA-256 hash value of APOD image
-    :returns: None
-    """    
-    return #TODO
+    print("Apdo information of the Image")
+    print("image title", image_title)
+    print("URL", image_url)
+    print("Size",image_size)
+    print("Hash Value", image_sha256)
 
 def create_apod_image_cache_db(db_path):
-    """
-    Creates the APOD image cache SQLite database if it 
-    doesn't already exist.
 
-    :param db_path: Path of APOD image cache .db file
-    :returns: None
+    con = sqlite3.connect(db_path)
+    createTableQuerry == """"
+        CREATE TABLE IF NOT EXISTS image_cache (
+            image_title VARCHAR(30),
+            image_path TEXT,
+            image_size INTEGER,
+            image_sha256 VARCHAR(30)
+        )
     """
-    return #TODO
-
 def add_apod_to_image_cache_db(db_path, image_title, image_path, image_size, image_sha256):
     """
     Adds a specified APOD image to the image cache database.
@@ -227,7 +210,7 @@ def apod_image_already_in_cache(db_path, image_sha256):
     :param db_path: Path of APOD image cache .db file
     :param image_sha256: SHA-256 hash value of APOD image
     :returns: True if image is already in the cache; False otherwise
-    """ 
+    """
     return False #TODO
 
 def get_image_size(image_data):
