@@ -26,6 +26,8 @@ from pytest import param
 import requests
 import sqlite3
 import re
+import ctypes
+import hashlib
 
 
 def main():
@@ -139,7 +141,7 @@ def get_apod_info(apod_date):
 
     print("Getting image Information from NASA... Please stand by...", end= '')
 
-    NASA_API_KEY = '1x42mQ9rSMKQPydBlZQQNGDPPoAwmqhT7M5rhcBW'
+    NASA_API_KEY = 'tz6CvXkLfg4etTXfvIZSOFaGDi6Cmm9BT393j05V'
     APOD_URL = "https://api.nasa.gov/planetary/apod"
     apod_params = {
         'api_key' : NASA_API_KEY,
@@ -181,7 +183,7 @@ def print_apod_info(image_url, image_title, image_path, image_size, image_sha256
 def create_apod_image_cache_db(db_path):
 
     con = sqlite3.connect(db_path)
-    createTableQuerry == """"
+    createTableQuery = """
         CREATE TABLE IF NOT EXISTS image_cache (
             image_title VARCHAR(30),
             image_path TEXT,
@@ -189,76 +191,72 @@ def create_apod_image_cache_db(db_path):
             image_sha256 VARCHAR(30)
         )
     """
-def add_apod_to_image_cache_db(db_path, image_title, image_path, image_size, image_sha256):
-    """
-    Adds a specified APOD image to the image cache database.
+    con.execute(createTableQuery)
+    con.commit()
+    con.close()
 
-    :param db_path: Path of APOD image cache .db file
-    :param image_title: Title of the APOD image
-    :param image_path: Path of the APOD image file saved locally
-    :param image_size: Size of APOD image in bytes
-    :param image_sha256: SHA-256 hash value of APOD image
-    :returns: None
+def add_apod_to_image_cache_db(db_path, image_title, image_path, image_size, image_sha256):
+
+    con = sqlite3.connect(db_path)
+    query = """
+        INSERT INTO image_cache VALUES (
+            !,!,!,!
+        )
     """
-    return #TODO
+    con.execute(query,(image_title, image_path, image_size, image_sha256))
+    con.commit()
+    return None
 
 def apod_image_already_in_cache(db_path, image_sha256):
-    """
-    Determines whether an image with a specified SHA-256 hash value
-    is already present in the image cache.
 
-    :param db_path: Path of APOD image cache .db file
-    :param image_sha256: SHA-256 hash value of APOD image
-    :returns: True if image is already in the cache; False otherwise
+    con = sqlite3.connect(db_path)
+    cacheCheckQuery = """
+        SELECT * from image_cache where image_sha256 = ?
     """
-    return False #TODO
+    cursor = con.cursor()
+    cursor.execute(cacheCheckQuery, (image_sha256,))
+    result = cursor.fetchall()
+    if(len(result) > 0):
+        return True
+    else :
+        return False
 
 def get_image_size(image_data):
-    """
-    Determines the size of an image in bytes
 
-    :param image_data: Image data binary string
-    :returns: Size of image in bytes
-    """
-    return 'TODO'
+    return len(image_data)
 
 def get_image_sha256(image_data):
-    """
-    Calculates the SHA-256 hash value of an image
 
-    :param image_data: Image data binary string
-    :returns: SHA-256 hash value of image (hexadecimal string)
-    """
-    return 'TODO'
+    return hashlib.sha256(image_data).hexdigest()
 
 def download_image_from_url(image_url):
-    """
-    Downloads an image from a specified URL.
-    ** DOES NOT SAVE THE IMAGE TO DISK **
 
-    :param image_url: URL of image
-    :returns: Image data binary string (content of response message)
-    """
-    return 'TODO'
+    print("Download image from NASA....", end='')
+
+    resp_msg = requests.get(image_url)
+
+    if resp_msg.status_code == requests.codes.ok:
+        print("success")
+        return resp_msg.content
+    else:
+        print('Failure code', resp_msg.status_code)
+        exit('Script execution aborted')
 
 def save_image_file(image_data, image_path):
-    """
-    Saves image data as a file on disk.
-    ** DOES NOT DOWNLOAD THE IMAGE **
 
-    :param image_data: Image data binary string
-    :param image_path: Path to save image file
-    :returns: None
-    """
-    return # TODO
+    try:
+        print("Saving image to file to cache .......", end='')
+        with open(image_path, 'wb') as fp:
+            fp.write(image_data)
+            print('success')
+    except:
+        print("Failure")
+        exit('Script aborted')
+
 
 def set_desktop_background_image(image_path):
-    """
-    Changes the desktop wallpaper to a specific image.
 
-    :param image_path: Path of image file
-    :returns: None
-    """
-    return # TODO
+    ctypes.windll.user32.SystemParametersInfoW(20, 0,image_path, 0x3)
+    return None
 
 main()
